@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyBots - Bot Personality Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 MyBots - Personality Manager</h1>
+            <p>Create and interact with customizable bots</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Bot Management Section -->
+            <section class="bot-management">
+                <h2>Bot Management</h2>
+                <button id="createBotBtn" class="btn btn-primary">+ Create New Bot</button>
+                
+                <div id="botList" class="bot-list">
+                    <!-- Bots will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Bot Creation/Edit Form -->
+            <div id="botFormModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2 id="formTitle">Create New Bot</h2>
+                    <form id="botForm">
+                        <input type="hidden" id="botId">
+                        
+                        <div class="form-group">
+                            <label for="botName">Bot Name:</label>
+                            <input type="text" id="botName" required placeholder="e.g., Friendly Assistant">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="botPersonality">Personality Description:</label>
+                            <textarea id="botPersonality" rows="4" required 
+                                placeholder="Describe the bot's personality (e.g., friendly, professional, humorous, serious)"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="botPrompt">System Prompt/Instructions:</label>
+                            <textarea id="botPrompt" rows="6" required 
+                                placeholder="Enter the bot's system prompt or instructions (e.g., 'You are a helpful assistant that answers questions about technology')"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Bot</button>
+                            <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Chat Interface -->
+            <section class="chat-interface">
+                <h2>Chat with Bot</h2>
+                <div id="chatContainer" class="chat-container">
+                    <div id="noBotSelected" class="no-bot-message">
+                        <p>👆 Select or create a bot to start chatting</p>
+                    </div>
+                    <div id="chatArea" class="chat-area" style="display: none;">
+                        <div class="chat-header">
+                            <h3 id="currentBotName">Bot Name</h3>
+                            <button id="clearChatBtn" class="btn btn-small">Clear Chat</button>
+                        </div>
+                        <div id="chatMessages" class="chat-messages">
+                            <!-- Messages will appear here -->
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" id="messageInput" placeholder="Type your message...">
+                            <button id="sendBtn" class="btn btn-primary">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
