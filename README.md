@@ -13,6 +13,8 @@ A web application that allows you to create and interact with customizable AI bo
 
 ## Installation
 
+### Standard Installation
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/MIHAchoppa/MyBots.git
@@ -24,11 +26,42 @@ cd MyBots
 pip install -r requirements.txt
 ```
 
+3. (Optional) Configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your preferred settings
+```
+
+### Docker Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/MIHAchoppa/MyBots.git
+cd MyBots
+```
+
+2. Build and run with Docker Compose:
+```bash
+docker-compose up -d
+```
+
 ## Usage
 
 1. Start the application:
+
+**Development mode:**
 ```bash
 python app.py
+```
+
+**Production mode (with Gunicorn):**
+```bash
+gunicorn --bind 0.0.0.0:5000 --workers 4 app:app
+```
+
+**Docker:**
+```bash
+docker-compose up
 ```
 
 2. Open your browser and navigate to:
@@ -47,6 +80,16 @@ http://localhost:5000
    - Click the "Chat" button on any bot
    - Type your message and press Enter or click Send
    - The bot will respond based on its personality!
+
+5. Export/Import bots:
+   - Use "Export Bots" to save all your bots to a JSON file
+   - Use "Import Bots" to restore bots from a JSON file
+
+### Keyboard Shortcuts
+
+- **Ctrl/Cmd + K**: Focus message input (when bot is selected)
+- **Escape**: Close modal dialogs
+- **Enter**: Send message in chat
 
 ## Bot Personalities
 
@@ -88,18 +131,60 @@ MyBots/
 
 ## Technologies Used
 
-- **Backend**: Python, Flask
+- **Backend**: Python, Flask, Gunicorn
 - **Frontend**: HTML, CSS, JavaScript
 - **Storage**: JSON file-based storage
+- **Testing**: pytest
+- **Deployment**: Docker, Docker Compose
+
+## New Features (Version 2.0)
+
+✅ **Toast Notifications**: Beautiful, non-intrusive notifications instead of alerts  
+✅ **Loading States**: Visual feedback during API operations  
+✅ **Export/Import**: Backup and restore your bot configurations  
+✅ **Input Validation**: Comprehensive validation on both frontend and backend  
+✅ **Enhanced Personality System**: More sophisticated bot responses based on personality traits  
+✅ **Configuration Management**: Environment variable support for easy deployment  
+✅ **Error Handling**: Robust error handling throughout the application  
+✅ **Security Improvements**: Input sanitization and validation  
+✅ **Keyboard Shortcuts**: Productivity enhancements  
+✅ **Tests**: Automated testing for critical functionality  
+✅ **Docker Support**: Easy containerized deployment  
+✅ **Production Ready**: Gunicorn configuration for production deployments
+
+## Configuration
+
+You can configure the application using environment variables (see `.env.example`):
+
+- `SECRET_KEY`: Flask secret key for sessions (required for production)
+- `FLASK_DEBUG`: Enable/disable debug mode (default: True)
+- `FLASK_HOST`: Host to bind to (default: 0.0.0.0)
+- `FLASK_PORT`: Port to bind to (default: 5000)
+- `BOTS_FILE`: Path to bots data file (default: bots_data.json)
+- `MAX_BOT_NAME_LENGTH`: Maximum bot name length (default: 100)
+- `MAX_PERSONALITY_LENGTH`: Maximum personality description length (default: 500)
+- `MAX_PROMPT_LENGTH`: Maximum system prompt length (default: 2000)
+- `MAX_MESSAGE_LENGTH`: Maximum chat message length (default: 1000)
+- `MAX_CHAT_HISTORY`: Maximum messages to keep in chat history (default: 100)
+
+## Testing
+
+Run the test suite:
+
+```bash
+python -m pytest test_app.py -v
+```
 
 ## Future Enhancements
 
 - Integration with AI APIs (OpenAI, Anthropic, etc.)
-- Export/import bot configurations
 - Voice chat capabilities
-- Multi-user support
-- Advanced personality customization
-- Bot analytics and insights
+- Multi-user support with authentication
+- Advanced personality customization with sliders
+- Bot analytics and conversation insights
+- Rate limiting and API throttling
+- WebSocket support for real-time updates
+- Bot templates library
 
 ## Contributing
 
