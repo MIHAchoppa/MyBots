@@ -35,6 +35,37 @@ function setupEventListeners() {
     });
     clearChatBtn.addEventListener('click', clearChat);
     
+    // Export/Import functionality
+    const exportBtn = document.getElementById('exportBotsBtn');
+    const importBtn = document.getElementById('importBotsBtn');
+    const importFileInput = document.getElementById('importFileInput');
+    
+    if (exportBtn) exportBtn.addEventListener('click', exportBots);
+    if (importBtn) {
+        importBtn.addEventListener('click', () => importFileInput.click());
+    }
+    if (importFileInput) {
+        importFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                importBots(e.target.files[0]);
+                e.target.value = ''; // Reset input
+            }
+        });
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + K to focus message input
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            if (currentBotId) messageInput.focus();
+        }
+        // Escape to close modal
+        if (e.key === 'Escape' && botFormModal.style.display === 'block') {
+            closeBotForm();
+        }
+    });
+    
     // Close modal when clicking outside
     window.addEventListener('click', (e) => {
         if (e.target === botFormModal) closeBotForm();
@@ -95,10 +126,20 @@ async function handleBotFormSubmit(e) {
     
     const botId = document.getElementById('botId').value;
     const botData = {
-        name: document.getElementById('botName').value,
-        personality: document.getElementById('botPersonality').value,
-        prompt: document.getElementById('botPrompt').value
+        name: document.getElementById('botName').value.trim(),
+        personality: document.getElementById('botPersonality').value.trim(),
+        prompt: document.getElementById('botPrompt').value.trim()
     };
+
+    // Validate input
+    const validationError = validateBotData(botData.name, botData.personality, botData.prompt);
+    if (validationError) {
+        showNotification(validationError, 'error');
+        return;
+    }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn, true);
 
     try {
         let response;
@@ -124,11 +165,13 @@ async function handleBotFormSubmit(e) {
             closeBotForm();
             await loadBots();
         } else {
-            showNotification('Error saving bot', 'error');
+            showNotification(result.error || 'Error saving bot', 'error');
         }
     } catch (error) {
         console.error('Error saving bot:', error);
-        showNotification('Error saving bot', 'error');
+        showNotification('Error saving bot. Please try again.', 'error');
+    } finally {
+        setButtonLoading(submitBtn, false);
     }
 }
 
@@ -281,13 +324,31 @@ function scrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Show notification
+// Show notification (Toast)
 function showNotification(message, type = 'info') {
-    // Simple console notification for now
-    console.log(`[${type.toUpperCase()}] ${message}`);
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
     
-    // You can enhance this with a proper toast notification
-    alert(message);
+    const icons = {
+        success: '✓',
+        error: '✗',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+    
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${escapeHtml(message)}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.add('hiding');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
 // Escape HTML to prevent XSS
@@ -295,4 +356,99 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Add loading state to button
+function setButtonLoading(button, isLoading) {
+    if (isLoading) {
+        button.disabled = true;
+        button.dataset.originalText = button.textContent;
+        button.innerHTML = `${button.dataset.originalText} <span class="loading"></span>`;
+    } else {
+        button.disabled = false;
+        button.textContent = button.dataset.originalText || button.textContent;
+    }
+}
+
+// Validate bot form data
+function validateBotData(name, personality, prompt) {
+    if (!name || name.trim().length === 0) {
+        return 'Bot name is required';
+    }
+    if (name.trim().length > 100) {
+        return 'Bot name must be less than 100 characters';
+    }
+    if (!personality || personality.trim().length === 0) {
+        return 'Personality description is required';
+    }
+    if (personality.trim().length > 500) {
+        return 'Personality description must be less than 500 characters';
+    }
+    if (!prompt || prompt.trim().length === 0) {
+        return 'System prompt is required';
+    }
+    if (prompt.trim().length > 2000) {
+        return 'System prompt must be less than 2000 characters';
+    }
+    return null;
+}
+
+// Export bots to JSON file
+async function exportBots() {
+    try {
+        const response = await fetch('/api/bots');
+        const bots = await response.json();
+        
+        if (Object.keys(bots).length === 0) {
+            showNotification('No bots to export', 'warning');
+            return;
+        }
+        
+        const dataStr = JSON.stringify(bots, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `mybots-export-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        
+        showNotification('Bots exported successfully!', 'success');
+    } catch (error) {
+        console.error('Error exporting bots:', error);
+        showNotification('Error exporting bots', 'error');
+    }
+}
+
+// Import bots from JSON file
+async function importBots(file) {
+    try {
+        const text = await file.text();
+        const importedBots = JSON.parse(text);
+        
+        if (typeof importedBots !== 'object' || Array.isArray(importedBots)) {
+            showNotification('Invalid bot file format', 'error');
+            return;
+        }
+        
+        let imported = 0;
+        for (const [botId, botData] of Object.entries(importedBots)) {
+            try {
+                const response = await fetch('/api/bots', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(botData)
+                });
+                if (response.ok) imported++;
+            } catch (e) {
+                console.error('Error importing bot:', e);
+            }
+        }
+        
+        await loadBots();
+        showNotification(`Successfully imported ${imported} bot(s)!`, 'success');
+    } catch (error) {
+        console.error('Error importing bots:', error);
+        showNotification('Error importing bots: Invalid file format', 'error');
+    }
 }

@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <div id="toastContainer" class="toast-container"></div>
+    
     <div class="container">
         <header>
             <h1>🤖 MyBots - Personality Manager</h1>
@@ -18,6 +20,12 @@
             <section class="bot-management">
                 <h2>Bot Management</h2>
                 <button id="createBotBtn" class="btn btn-primary">+ Create New Bot</button>
+                
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="exportBotsBtn" class="btn btn-secondary btn-small" style="flex: 1;">Export Bots</button>
+                    <button id="importBotsBtn" class="btn btn-secondary btn-small" style="flex: 1;">Import Bots</button>
+                    <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                </div>
                 
                 <div id="botList" class="bot-list">
                     <!-- Bots will be loaded here -->
